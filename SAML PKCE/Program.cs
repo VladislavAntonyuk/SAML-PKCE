@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -10,17 +9,14 @@ using RestSharp;
 
 namespace SAML_PKCE
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.WriteLine("args:");
-            foreach (var arg in args)
-            {
-                Console.WriteLine(arg);
-            }
+            foreach (var arg in args) Console.WriteLine(arg);
 
-            string codeVerifier = "random_secret_string";
+            var codeVerifier = "random_secret_string";
             if (args.Length == 0)
             {
                 RegisterUrlScheme();
@@ -36,7 +32,7 @@ namespace SAML_PKCE
                 var authCode = arg1.Substring(arg1.IndexOf("authorizationCode") + "authorizationCode".Length + 1);
                 Console.WriteLine("Enter host: https://moveit.myddns.me/");
                 var host = Console.ReadLine();
-                var client = new RestClient($"{host}api/v1/token") { Timeout = -1 };
+                var client = new RestClient($"{host}api/v1/token") {Timeout = -1};
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
                 request.AddParameter("grant_type", "saml");
@@ -48,30 +44,22 @@ namespace SAML_PKCE
             }
         }
 
-        static string ComputeSha256Hash(string rawData)
+        private static string ComputeSha256Hash(string rawData)
         {
             // Create a SHA256   
-            using (SHA256 sha256Hash = SHA256.Create())
+            using (var sha256Hash = SHA256.Create())
             {
-                // ComputeHash - returns byte array  
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+                // ComputeHash - returns byte array
+                var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
 
-                // Convert byte array to a string   
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
+                // Convert byte array to a string
+                return Convert.ToBase64String(bytes).Split('=')[0].Replace('+', '-').Replace('/', '_');
             }
         }
 
         private static void RegisterUrlScheme()
         {
-            if (Registry.ClassesRoot.OpenSubKey("moveit") != null)
-            {
-                return;
-            }
+            if (Registry.ClassesRoot.OpenSubKey("moveit") != null) return;
 
             var key = Registry.ClassesRoot.CreateSubKey("moveit");
             key.SetValue("", "URL: MOVEIt Protocol");
@@ -81,7 +69,8 @@ namespace SAML_PKCE
             key = key.CreateSubKey("open");
             key = key.CreateSubKey("command");
 
-            var executionPath = Path.Combine(Environment.CurrentDirectory, $"{ Assembly.GetEntryAssembly()?.GetName().Name}.exe");
+            var executionPath = Path.Combine(Environment.CurrentDirectory,
+                $"{Assembly.GetEntryAssembly()?.GetName().Name}.exe");
             var commandValue = $"\"{executionPath}\" \"%1\"";
             key.SetValue("", commandValue);
         }
