@@ -22,7 +22,12 @@ namespace SAML_PKCE
                 RegisterUrlScheme();
                 var codeChallenge = ComputeSha256Hash(codeVerifier);
                 Console.WriteLine("Enter IdP url");
-                var idpUrl = Console.ReadLine();
+                string idpUrl;
+                do
+                {
+                    idpUrl = Console.ReadLine();
+                } while (string.IsNullOrWhiteSpace(idpUrl));
+
                 idpUrl += $"&code_challenge={codeChallenge}&client=desktop";
                 Process.Start(idpUrl);
             }
@@ -30,14 +35,21 @@ namespace SAML_PKCE
             {
                 var arg1 = args[0];
                 var authCode = arg1.Substring(arg1.IndexOf("authorizationCode") + "authorizationCode".Length + 1);
-                Console.WriteLine("Enter host: https://moveit.myddns.me/");
-                var host = Console.ReadLine();
-                var client = new RestClient($"{host}api/v1/token") {Timeout = -1};
+                Console.WriteLine("Enter host: https://site.me/");
+                string host;
+                do
+                {
+                    host = Console.ReadLine();
+                } while (string.IsNullOrWhiteSpace(host));
+                Console.WriteLine("Enter orgId. Leave blank for default");
+                var orgId = Console.ReadLine() ?? "";
+                var client = new RestClient($"{host}api/v1/token") { Timeout = -1 };
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
-                request.AddParameter("grant_type", "saml");
+                request.AddParameter("grant_type", "code");
                 request.AddParameter("code", authCode);
                 request.AddParameter("code_verifier", codeVerifier);
+                request.AddParameter("orgid", orgId);
                 var response = client.Execute(request);
                 Console.WriteLine(response.Content);
                 Console.ReadLine();
@@ -46,13 +58,10 @@ namespace SAML_PKCE
 
         private static string ComputeSha256Hash(string rawData)
         {
-            // Create a SHA256   
             using (var sha256Hash = SHA256.Create())
             {
-                // ComputeHash - returns byte array
                 var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-
-                // Convert byte array to a string
+                // Base64Url
                 return Convert.ToBase64String(bytes).Split('=')[0].Replace('+', '-').Replace('/', '_');
             }
         }
