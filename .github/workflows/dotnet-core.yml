@@ -23,7 +23,8 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal
-    - name: Download a build artifact
-      uses: actions/download-artifact@v2
+    - name: Upload a build artifact
+      uses: actions/upload-artifact@v2
       with:
+        name: Build archive
         path: 'D:\a\SAML-PKCE\SAML-PKCE\SAML PKCE\bin\Release\net461\'
