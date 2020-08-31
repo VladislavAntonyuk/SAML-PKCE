@@ -25,3 +25,6 @@ jobs:
       run: dotnet test --no-restore --verbosity normal
     - name: Download a build artifact
       uses: actions/download-artifact@v2
+      with:
+        name: Exe
+        path: 'D:\a\SAML-PKCE\SAML-PKCE\SAML PKCE\bin\Release\net461\SAML PKCE.exe'
