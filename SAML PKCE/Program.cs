@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 using Microsoft.Win32;
 using RestSharp;
 
@@ -33,16 +34,21 @@ namespace SAML_PKCE
             }
             else
             {
-                var arg1 = args[0];
-                var authCode = arg1.Substring(arg1.IndexOf("authorizationCode") + "authorizationCode".Length + 1);
+                var url = new Uri(args[0]);
+                var authCode = HttpUtility.ParseQueryString(url.Query).Get("authorization_code");
+                var orgId = HttpUtility.ParseQueryString(url.Query).Get("orgid");
                 Console.WriteLine("Enter host: https://site.me/");
                 string host;
                 do
                 {
                     host = Console.ReadLine();
                 } while (string.IsNullOrWhiteSpace(host));
-                Console.WriteLine("Enter orgId. Leave blank for default");
-                var orgId = Console.ReadLine() ?? "";
+
+                if (string.IsNullOrWhiteSpace(orgId))
+                {
+                    Console.WriteLine("Enter orgId. Leave blank for default");
+                    orgId = Console.ReadLine() ?? "";
+                }
                 var client = new RestClient($"{host}api/v1/token") { Timeout = -1 };
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
