@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 5.0.x
     - name: Build and publish
       run: |
-          dotnet publish /p:Configuration=Release
+          dotnet publish /p:Configuration=Release /p:PublishProfile=FolderProfile
           powershell Compress-Archive './SAML PKCE/bin/Release/net461/publish/' 'output.zip'
     - name: Create Release
       id: create_release
